@@ -563,13 +563,13 @@ class LdaModel(interfaces.TransformationABC):
 
     def show_topic(self, topicid, topn=10):
         topic = self.state.get_lambda()[topicid]
-        topic = topic / topic.sum() # normalize to probability dist
+        #topic = topic / topic.sum() # normalize to probability dist
         bestn = numpy.argsort(topic)[::-1][:topn]
         beststr = [(topic[id], self.id2word[id]) for id in bestn]
         return beststr
 
     def print_topic(self, topicid, topn=10):
-        return ' + '.join(['%.3f*%s' % v for v in self.show_topic(topicid, topn)])
+        return ' + '.join(['%.9f * %s' % v for v in self.show_topic(topicid, topn)])
 
 
     def __getitem__(self, bow, eps=0.01):
