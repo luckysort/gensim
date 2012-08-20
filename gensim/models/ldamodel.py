@@ -537,7 +537,7 @@ class LdaModel(interfaces.TransformationABC):
     def print_topics(self, topics=10, topn=10):
         self.show_topics(topics, topn, True)
 
-    def show_topics(self, topics=10, topn=10, log=False, formatted=True):
+    def show_topics(self, topics=10, topn=10, log=False, formatted=True, aff=21):
         """
         Print the `topN` most probable words for (randomly selected) `topics`
         number of topics. Set `topics=-1` to print all topics.
@@ -545,6 +545,8 @@ class LdaModel(interfaces.TransformationABC):
         Unlike LSA, there is no ordering between the topics in LDA.
         The printed `topics <= self.num_topics` subset of all topics is therefore
         arbitrary and may change between two runs.
+        
+        Weight the words by the number of documents they appear in before sorting them to throw out outliers
         """
         if topics < 0:
             # print all topics if `topics` is negative
@@ -553,23 +555,25 @@ class LdaModel(interfaces.TransformationABC):
         shown  = []
         for i in xrange(topics):
             if formatted:
-                topic = self.print_topic(i, topn=topn)
+                topic = self.print_topic(i, topn=topn, aff=aff)
             else:
-                topic = self.show_topic(i, topn=topn)
+                topic = self.show_topic(i, topn=topn, aff=aff)
             shown.append(topic)
             if log:
                 logger.info("topic #%i: %s" % (i, topic))
         return shown
 
-    def show_topic(self, topicid, topn=10):
+    def show_topic(self, topicid, topn=10, aff=21):
         topic = self.state.get_lambda()[topicid]
+        # multiply (the weight that the words are sorted by) by the number of documents it occured in.
+        symvalue = topic #numpy.array([self.id2word.dfs[i] * (v**aff) for (i,v) in enumerate(topic)])
         #topic = topic / topic.sum() # normalize to probability dist
-        bestn = numpy.argsort(topic)[::-1][:topn]
-        beststr = [(topic[id], self.id2word[id]) for id in bestn]
+        bestn = numpy.argsort(symvalue)[::-1][:topn]  # [::-1] reverses it.
+        beststr = [(symvalue[id], self.id2word[id]) for id in bestn]
         return beststr
 
-    def print_topic(self, topicid, topn=10):
-        return ' + '.join(['%.9f * %s' % v for v in self.show_topic(topicid, topn)])
+    def print_topic(self, topicid, topn=10, aff=21):
+        return ' '.join(["%s" % gram for weight,gram in self.show_topic(topicid, topn, aff=aff)])
 
 
     def __getitem__(self, bow, eps=0.01):

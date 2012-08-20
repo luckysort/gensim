@@ -26,7 +26,6 @@ from gensim import utils
 
 logger = logging.getLogger('gensim.corpora.dictionary')
 
-
 class Dictionary(utils.SaveLoad, UserDict.DictMixin):
     """
     Dictionary encapsulates the mapping between normalized words and their integer ids.
@@ -162,19 +161,17 @@ class Dictionary(utils.SaveLoad, UserDict.DictMixin):
         word id before and after the call to this function!
         """
         no_above_abs = int(no_above * self.num_docs) # convert fractional threshold to absolute threshold
-
         # determine which tokens to keep
         good_ids = (v for v in self.token2id.itervalues() if no_below <= self.dfs[v] <= no_above_abs)
         good_ids = sorted(good_ids, key=self.dfs.get, reverse=True)
         if keep_n is not None:
             good_ids = good_ids[:keep_n]
-        logger.info("keeping %i tokens which were in no less than %i and no more than %i (=%.1f%%) documents" %
-                     (len(good_ids), no_below, no_above_abs, 100.0 * no_above))
+        print "keeping %i tokens which were in no less than %i and no more than %i (=%.1f%%) documents" % (len(good_ids), no_below, no_above_abs, 100.0 * no_above)
 
         # do the actual filtering, then rebuild dictionary to remove gaps in ids
         self.filter_tokens(good_ids=good_ids)
         self.compactify()
-        logger.info("resulting dictionary: %s" % self)
+        print "resulting dictionary: %s" % self
 
 
     def filter_tokens(self, bad_ids=None, good_ids=None):

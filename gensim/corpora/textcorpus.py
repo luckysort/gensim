@@ -67,6 +67,8 @@ class TextCorpus(interfaces.CorpusABC):
     implementation.
 
     """
+    # cmon, input is damn keyword!
+    # and what is the point of initing the abstract base class when it doesnt even define init??
     def __init__(self, input=None):
         super(TextCorpus, self).__init__()
         self.input = input
